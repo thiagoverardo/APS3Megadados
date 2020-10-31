@@ -23,3 +23,17 @@ class Task(BaseModel):
                 'completed': False,
             }
         }
+
+
+class User(BaseModel):
+    name: str = Field(
+        title='user name',
+        max_length=512,
+    )
+
+    class Config:
+        schema_extra = {
+            'example': {
+                'name': 'thiagoverardo'
+            }
+        }

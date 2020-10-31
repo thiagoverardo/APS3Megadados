@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS user;
+CREATE TABLE user (
+    uuid BINARY(16) PRIMARY KEY,
+    name NVARCHAR(512)
+);
