@@ -10,8 +10,7 @@ from fastapi import Depends
 
 from utils.utils import get_config_filename, get_app_secrets_filename
 
-from .models import Task
-from .models import User
+from .models import Task, User
 
 
 class DBSession:
@@ -113,10 +112,10 @@ class DBSession:
 
         return found
 
-    # Users
+    # USERS
 
-    def read_user(self):
-        query = 'SELECT BIN_TO_UUID(uuid), name FROM user'
+    def read_users(self):
+        query = 'SELECT BIN_TO_UUID(uuid), name FROM users'
 
         with self.connection.cursor() as cursor:
             cursor.execute(query)
@@ -124,7 +123,7 @@ class DBSession:
 
         return {
             uuid_: User(
-                name=field_name
+                name=field_name,
             )
             for uuid_, field_name in db_results
         }
@@ -134,7 +133,7 @@ class DBSession:
 
         with self.connection.cursor() as cursor:
             cursor.execute(
-                'INSERT INTO user VALUES (UUID_TO_BIN(%s), %s, %s)',
+                'INSERT INTO users VALUES (UUID_TO_BIN(%s), %s)',
                 (str(uuid_), item.name),
             )
         self.connection.commit()
@@ -149,7 +148,7 @@ class DBSession:
             cursor.execute(
                 '''
                 SELECT name
-                FROM user
+                FROM users
                 WHERE uuid = UUID_TO_BIN(%s)
                 ''',
                 (str(uuid_), ),
@@ -158,42 +157,12 @@ class DBSession:
 
         return User(name=result[0])
 
-    def replace_user(self, uuid_, item):
-        if not self.__user_exists(uuid_):
-            raise KeyError()
-
-        with self.connection.cursor() as cursor:
-            cursor.execute(
-                '''
-                UPDATE user SET name=%s
-                WHERE uuid=UUID_TO_BIN(%s)
-                ''',
-                (item.description, item.completed, str(uuid_)),
-            )
-        self.connection.commit()
-
-    def remove_user(self, uuid_):
-        if not self.__user_exists(uuid_):
-            raise KeyError()
-
-        with self.connection.cursor() as cursor:
-            cursor.execute(
-                'DELETE FROM user WHERE uuid=UUID_TO_BIN(%s)',
-                (str(uuid_), ),
-            )
-        self.connection.commit()
-
-    def remove_all_user(self):
-        with self.connection.cursor() as cursor:
-            cursor.execute('DELETE FROM user')
-        self.connection.commit()
-
     def __user_exists(self, uuid_: uuid.UUID):
         with self.connection.cursor() as cursor:
             cursor.execute(
                 '''
                 SELECT EXISTS(
-                    SELECT 1 FROM user WHERE uuid=UUID_TO_BIN(%s)
+                    SELECT 1 FROM users WHERE uuid=UUID_TO_BIN(%s)
                 )
                 ''',
                 (str(uuid_), ),

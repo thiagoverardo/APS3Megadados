@@ -24,16 +24,18 @@ class Task(BaseModel):
             }
         }
 
+# user
+
 
 class User(BaseModel):
     name: str = Field(
-        title='user name',
-        max_length=512,
+        title='User name',
+        max_length=32,
     )
 
     class Config:
         schema_extra = {
             'example': {
-                'name': 'thiagoverardo'
+                'name': 'vitor'
             }
         }

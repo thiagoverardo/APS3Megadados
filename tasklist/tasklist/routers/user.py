@@ -17,8 +17,8 @@ router = APIRouter()
     description='Reads the whole user list.',
     response_model=Dict[uuid.UUID, User],
 )
-async def read_user(db: DBSession = Depends(get_db)):
-    return db.read_user()
+async def read_users(db: DBSession = Depends(get_db)):
+    return db.read_users()
 
 
 @router.post(
@@ -49,8 +49,8 @@ async def read_user(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
 
 @router.put(
     '/{uuid_}',
-    summary='Replaces an user',
-    description='Replaces an user identified by its UUID.',
+    summary='Replaces a user',
+    description='Replaces a user identified by its UUID.',
 )
 async def replace_user(
         uuid_: uuid.UUID,
