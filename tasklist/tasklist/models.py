@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 
+import uuid  # uuid: unique id
+
 
 # pylint: disable=too-few-public-methods
 class Task(BaseModel):
@@ -15,12 +17,16 @@ class Task(BaseModel):
         False,
         title='Shows whether the task was completed',
     )
+    uuid_user: uuid.UUID = Field(
+        title='uuid of user linked to rask',
+    )
 
     class Config:
         schema_extra = {
             'example': {
                 'description': 'Buy baby diapers',
                 'completed': False,
+                'uuid_user': 'e4415e56-bad0-4c0a-9b19-d3504e4dc1f1',
             }
         }
 
@@ -36,6 +42,6 @@ class User(BaseModel):
     class Config:
         schema_extra = {
             'example': {
-                'name': 'vitor'
+                'name': 'vitor',
             }
         }

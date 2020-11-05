@@ -41,43 +41,59 @@ def test_read_tasks_with_no_task():
 
 def test_create_and_read_some_tasks():
     setup_database()
+
+    # como linkamos um user a uma task, para criar e testar precisa-se da inicialização de um usuario
+    user = {'name': 'thiago', }
+    response = client.post('/user', json=user)
+    assert response.status_code == 200
+    uuid_user = response.json()
+
     tasks = [
         {
             "description": "foo",
-            "completed": False
+            "completed": False,
+            'uuid_user': uuid_user,
         },
         {
             "description": "bar",
-            "completed": True
+            "completed": True,
+            'uuid_user': uuid_user,
         },
         {
-            "description": "baz"
+            "description": "baz",
+            'uuid_user': uuid_user,
         },
         {
-            "completed": True
+            "completed": True,
+            'uuid_user': uuid_user,
         },
-        {},
+        {'uuid_user': uuid_user, },
     ]
     expected_responses = [
         {
             'description': 'foo',
-            'completed': False
+            'completed': False,
+            'uuid_user': uuid_user,
         },
         {
             'description': 'bar',
-            'completed': True
+            'completed': True,
+            'uuid_user': uuid_user,
         },
         {
             'description': 'baz',
-            'completed': False
+            'completed': False,
+            'uuid_user': uuid_user,
         },
         {
             'description': 'no description',
-            'completed': True
+            'completed': True,
+            'uuid_user': uuid_user,
         },
         {
             'description': 'no description',
-            'completed': False
+            'completed': False,
+            'uuid_user': uuid_user,
         },
     ]
 
@@ -116,18 +132,39 @@ def test_create_and_read_some_tasks():
     assert response.status_code == 200
     assert response.json() == {}
 
+    # Delete all users
+    response = client.delete('/user')
+    assert response.status_code == 200
+
+    # Check whether there are no more users.
+    response = client.get('/user')
+    assert response.status_code == 200
+    assert response.json() == {}
+
 
 def test_substitute_task():
     setup_database()
 
+    # como linkamos um user a uma task, para criar e testar precisa-se da inicialização de um usuario
+    user = {'name': 'vitor', }
+    response = client.post('/user', json=user)
+    uuid_user_0 = response.json()
+
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False,
+            'uuid_user': uuid_user_0, }
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
 
+    # criar um novo usuário para transferir a tarefa para ele
+    user = {'name': 'thiago', }
+    response = client.post('/user', json=user)
+    uuid_user_1 = response.json()
+
     # Replace the task.
-    new_task = {'description': 'bar', 'completed': True}
+    new_task = {'description': 'bar',
+                'completed': True, 'uuid_user': uuid_user_1, }
     response = client.put(f'/task/{uuid_}', json=new_task)
     assert response.status_code == 200
 
@@ -140,18 +177,32 @@ def test_substitute_task():
     response = client.delete(f'/task/{uuid_}')
     assert response.status_code == 200
 
+    # Delete all users
+    response = client.delete('/user')
+    assert response.status_code == 200
+
+    # Check whether there are no more users.
+    response = client.get('/user')
+    assert response.status_code == 200
+    assert response.json() == {}
+
 
 def test_alter_task():
     setup_database()
 
+    # como linkamos um user a uma task, para criar e testar precisa-se da inicialização de um usuario
+    user = {'name': 'vitorethiago', }
+    response = client.post('/user', json=user)
+    uuid_user = response.json()
+
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'uuid_user': uuid_user, }
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
 
     # Replace the task.
-    new_task_partial = {'completed': True}
+    new_task_partial = {'completed': True, 'uuid_user': uuid_user, }
     response = client.patch(f'/task/{uuid_}', json=new_task_partial)
     assert response.status_code == 200
 
@@ -163,6 +214,15 @@ def test_alter_task():
     # Delete the task.
     response = client.delete(f'/task/{uuid_}')
     assert response.status_code == 200
+
+    # Delete all users
+    response = client.delete('/user')
+    assert response.status_code == 200
+
+    # Check whether there are no more users.
+    response = client.get('/user')
+    assert response.status_code == 200
+    assert response.json() == {}
 
 
 def test_read_invalid_task():
@@ -196,8 +256,13 @@ def test_delete_nonexistant_task():
 def test_delete_all_tasks():
     setup_database()
 
+    # como linkamos um user a uma task, para criar e testar precisa-se da inicialização de um usuario
+    user = {'name': 'ooooooo', }
+    response = client.post('/user', json=user)
+    uuid_user = response.json()
+
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'uuid_user': uuid_user, }
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
@@ -213,5 +278,14 @@ def test_delete_all_tasks():
 
     # Check whether all tasks have been removed.
     response = client.get('/task')
+    assert response.status_code == 200
+    assert response.json() == {}
+
+    # Delete all users
+    response = client.delete('/user')
+    assert response.status_code == 200
+
+    # Check whether there are no more users.
+    response = client.get('/user')
     assert response.status_code == 200
     assert response.json() == {}

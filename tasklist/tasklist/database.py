@@ -18,7 +18,7 @@ class DBSession:
         self.connection = connection
 
     def read_tasks(self, completed: bool = None):
-        query = 'SELECT BIN_TO_UUID(uuid), description, completed FROM tasks'
+        query = 'SELECT BIN_TO_UUID(uuid), description, completed, BIN_TO_UUID(uuid_user) FROM tasks'
         if completed is not None:
             query += ' WHERE completed = '
             if completed:
@@ -34,8 +34,9 @@ class DBSession:
             uuid_: Task(
                 description=field_description,
                 completed=bool(field_completed),
+                uuid_user=field_uuid_user
             )
-            for uuid_, field_description, field_completed in db_results
+            for uuid_, field_description, field_completed, field_uuid_user in db_results
         }
 
     def create_task(self, item: Task):
@@ -43,8 +44,8 @@ class DBSession:
 
         with self.connection.cursor() as cursor:
             cursor.execute(
-                'INSERT INTO tasks VALUES (UUID_TO_BIN(%s), %s, %s)',
-                (str(uuid_), item.description, item.completed),
+                'INSERT INTO tasks VALUES (UUID_TO_BIN(%s), %s, %s, UUID_TO_BIN(%s))',
+                (str(uuid_), item.description, item.completed, str(item.uuid_user)),
             )
         self.connection.commit()
 
@@ -57,7 +58,7 @@ class DBSession:
         with self.connection.cursor() as cursor:
             cursor.execute(
                 '''
-                SELECT description, completed
+                SELECT description, completed, BIN_TO_UUID(uuid_user)
                 FROM tasks
                 WHERE uuid = UUID_TO_BIN(%s)
                 ''',
@@ -65,7 +66,7 @@ class DBSession:
             )
             result = cursor.fetchone()
 
-        return Task(description=result[0], completed=bool(result[1]))
+        return Task(description=result[0], completed=bool(result[1]), uuid_user=result[2])
 
     def replace_task(self, uuid_, item):
         if not self.__task_exists(uuid_):
@@ -74,10 +75,11 @@ class DBSession:
         with self.connection.cursor() as cursor:
             cursor.execute(
                 '''
-                UPDATE tasks SET description=%s, completed=%s
+                UPDATE tasks SET description=%s, completed=%s, uuid_user=UUID_TO_BIN(%s)
                 WHERE uuid=UUID_TO_BIN(%s)
                 ''',
-                (item.description, item.completed, str(uuid_)),
+                (item.description, item.completed,
+                 str(item.uuid_user), str(uuid_)),
             )
         self.connection.commit()
 
