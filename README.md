@@ -1,5 +1,5 @@
-# Megadados2020-2-Projeto1
-Projeto 1 da disciplina Megadados - repositorio para alunos
+# Megadados2020 APS3
+APS3 da disciplina Megadados
 
 Para executar o serviço rode
 
